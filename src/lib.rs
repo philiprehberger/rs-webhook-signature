@@ -7,7 +7,7 @@ use subtle::ConstantTimeEq;
 type HmacSha256 = Hmac<Sha256>;
 
 /// Error types for webhook signature operations.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum SignatureError {
     /// The signature does not match.
     Mismatch,
@@ -133,6 +133,19 @@ pub fn parse_header(header: &str) -> Result<(String, u64), SignatureError> {
     Ok((sig, ts))
 }
 
+/// Verify a webhook signature directly from a header string.
+///
+/// Combines `parse_header()` and `verify()` into a single call.
+pub fn verify_header(
+    payload: &str,
+    secret: &str,
+    header: &str,
+    max_age_secs: u64,
+) -> Result<(), SignatureError> {
+    let (signature, timestamp) = parse_header(header)?;
+    verify(payload, secret, &signature, timestamp, max_age_secs)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -145,7 +158,40 @@ mod tests {
 
     #[test]
     fn test_verify_mismatch() {
-        assert!(verify("test", "secret", "wrong", 1000000, 0).is_err());
+        let err = verify("test", "secret", "wrong", 1000000, 0).unwrap_err();
+        assert_eq!(err, SignatureError::Mismatch);
+    }
+
+    #[test]
+    fn test_verify_wrong_payload() {
+        let signed = sign_at("correct", "secret", 1000000);
+        let err = verify("wrong", "secret", &signed.signature, 1000000, 0).unwrap_err();
+        assert_eq!(err, SignatureError::Mismatch);
+    }
+
+    #[test]
+    fn test_verify_wrong_secret() {
+        let signed = sign_at("test", "secret1", 1000000);
+        let err = verify("test", "secret2", &signed.signature, 1000000, 0).unwrap_err();
+        assert_eq!(err, SignatureError::Mismatch);
+    }
+
+    #[test]
+    fn test_verify_expired() {
+        let signed = sign_at("test", "secret", 1000);
+        let err = verify("test", "secret", &signed.signature, 1000, 300).unwrap_err();
+        match err {
+            SignatureError::Expired { max_age_secs, .. } => {
+                assert_eq!(max_age_secs, 300);
+            }
+            _ => panic!("expected Expired error"),
+        }
+    }
+
+    #[test]
+    fn test_verify_age_check_disabled() {
+        let signed = sign_at("test", "secret", 1000);
+        assert!(verify("test", "secret", &signed.signature, 1000, 0).is_ok());
     }
 
     #[test]
@@ -155,5 +201,108 @@ mod tests {
         let (sig, ts) = parse_header(&header).unwrap();
         assert_eq!(ts, 12345);
         assert_eq!(sig, signed.signature);
+    }
+
+    #[test]
+    fn test_parse_header_missing_timestamp() {
+        let err = parse_header("sha256=abc123").unwrap_err();
+        assert_eq!(
+            err,
+            SignatureError::InvalidHeader("missing timestamp".to_string())
+        );
+    }
+
+    #[test]
+    fn test_parse_header_missing_signature() {
+        let err = parse_header("t=12345").unwrap_err();
+        assert_eq!(
+            err,
+            SignatureError::InvalidHeader("missing sha256 signature".to_string())
+        );
+    }
+
+    #[test]
+    fn test_parse_header_malformed() {
+        let err = parse_header("not-a-valid-header").unwrap_err();
+        assert_eq!(
+            err,
+            SignatureError::InvalidHeader("malformed header part".to_string())
+        );
+    }
+
+    #[test]
+    fn test_parse_header_invalid_timestamp() {
+        let err = parse_header("t=notanumber,sha256=abc").unwrap_err();
+        assert_eq!(
+            err,
+            SignatureError::InvalidHeader("invalid timestamp".to_string())
+        );
+    }
+
+    #[test]
+    fn test_verify_header() {
+        let signed = sign_at("test payload", "secret", 1000000);
+        let header = signed.to_header();
+        assert!(verify_header("test payload", "secret", &header, 0).is_ok());
+    }
+
+    #[test]
+    fn test_verify_header_mismatch() {
+        let signed = sign_at("test", "secret", 1000000);
+        let header = signed.to_header();
+        let err = verify_header("wrong payload", "secret", &header, 0).unwrap_err();
+        assert_eq!(err, SignatureError::Mismatch);
+    }
+
+    #[test]
+    fn test_verify_header_invalid() {
+        let err = verify_header("test", "secret", "garbage", 0).unwrap_err();
+        assert!(matches!(err, SignatureError::InvalidHeader(_)));
+    }
+
+    #[test]
+    fn test_signed_payload_to_header_format() {
+        let signed = sign_at("test", "secret", 99999);
+        let header = signed.to_header();
+        assert!(header.starts_with("t=99999,sha256="));
+    }
+
+    #[test]
+    fn test_empty_payload() {
+        let signed = sign_at("", "secret", 1000000);
+        assert!(verify("", "secret", &signed.signature, 1000000, 0).is_ok());
+    }
+
+    #[test]
+    fn test_empty_secret() {
+        let signed = sign_at("test", "", 1000000);
+        assert!(verify("test", "", &signed.signature, 1000000, 0).is_ok());
+    }
+
+    #[test]
+    fn test_signature_error_display() {
+        assert_eq!(
+            format!("{}", SignatureError::Mismatch),
+            "signature verification failed"
+        );
+        assert!(format!(
+            "{}",
+            SignatureError::Expired {
+                age_secs: 500,
+                max_age_secs: 300
+            }
+        )
+        .contains("500s"));
+        assert!(format!("{}", SignatureError::InvalidHeader("test".into())).contains("test"));
+    }
+
+    #[test]
+    fn test_signature_error_equality() {
+        assert_eq!(SignatureError::Mismatch, SignatureError::Mismatch);
+        assert_ne!(SignatureError::Mismatch, SignatureError::InvalidHeader("x".into()));
+        assert_eq!(
+            SignatureError::Expired { age_secs: 10, max_age_secs: 5 },
+            SignatureError::Expired { age_secs: 10, max_age_secs: 5 }
+        );
     }
 }

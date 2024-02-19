@@ -23,10 +23,18 @@ println!("{}", signed.to_header()); // "t=...,sha256=..."
 ### Verify a Signature
 
 ```rust
+use philiprehberger_webhook_signature::verify_header;
+
+verify_header("payload", "secret", &header, 300)?; // max age 300 seconds
+```
+
+Or with manual parsing:
+
+```rust
 use philiprehberger_webhook_signature::{verify, parse_header};
 
 let (sig, ts) = parse_header(&header)?;
-verify("payload", "secret", &sig, ts, 300)?; // max age 300 seconds
+verify("payload", "secret", &sig, ts, 300)?;
 ```
 
 ### Error Handling
