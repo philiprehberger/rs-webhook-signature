@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0
+
+- Add `Signer` struct — binds a secret for convenient repeated signing
+- Add `Verifier` struct — binds a secret and max age for convenient repeated verification
+- Add `Clone` derive for `SignatureError`
+- Add `PartialEq` derive for `SignedPayload`
+- Add `Display` impl for `SignedPayload` — equivalent to `to_header()`
+
 ## 0.2.0
 
 - Add `verify_header()` convenience function that combines parsing and verification
