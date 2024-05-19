@@ -1,5 +1,9 @@
 # rs-webhook-signature
 
+[![CI](https://github.com/philiprehberger/rs-webhook-signature/actions/workflows/ci.yml/badge.svg)](https://github.com/philiprehberger/rs-webhook-signature/actions/workflows/ci.yml)
+[![Crates.io](https://img.shields.io/crates/v/philiprehberger-webhook-signature.svg)](https://crates.io/crates/philiprehberger-webhook-signature)
+[![License](https://img.shields.io/github/license/philiprehberger/rs-webhook-signature)](LICENSE)
+
 HMAC-SHA256 webhook signing and verification for Rust.
 
 ## Installation
