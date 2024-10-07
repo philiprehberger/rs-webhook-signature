@@ -1,4 +1,7 @@
 # Changelog
+n## 0.3.4 (2026-03-16)
+
+- Update install snippet to use full version
 
 ## 0.3.3 (2026-03-16)
 

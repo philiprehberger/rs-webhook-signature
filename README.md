@@ -10,7 +10,7 @@ HMAC-SHA256 webhook signing and verification for Rust.
 
 ```toml
 [dependencies]
-philiprehberger-webhook-signature = "0.3"
+philiprehberger-webhook-signature = "0.3.4"
 ```
 
 ## Usage
