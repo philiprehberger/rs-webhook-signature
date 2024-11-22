@@ -1,11 +1,14 @@
 [package]
 name = "philiprehberger-webhook-signature"
-version = "0.3.4"
+version = "0.3.5"
 edition = "2021"
 authors = ["Philip Rehberger"]
 description = "HMAC-SHA256 webhook signing and verification for Rust"
 license = "MIT"
 repository = "https://github.com/philiprehberger/rs-webhook-signature"
+readme = "README.md"
+rust-version = "1.70"
+documentation = "https://docs.rs/philiprehberger-webhook-signature"
 keywords = ["webhook", "hmac", "signature", "verification", "security"]
 categories = ["authentication", "web-programming"]
 
