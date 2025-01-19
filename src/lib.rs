@@ -1,3 +1,16 @@
+//! HMAC-SHA256 webhook signing and verification.
+//!
+//! # Example
+//!
+//! ```rust
+//! use philiprehberger_webhook_signature::{sign, verify};
+//!
+//! let secret = "my-secret";
+//! let payload = b"hello world";
+//! let signature = sign(secret, payload, None);
+//! assert!(verify(secret, payload, &signature, None).is_ok());
+//! ```
+
 use hmac::{Hmac, Mac};
 use sha2::Sha256;
 use std::fmt;
