@@ -6,7 +6,7 @@
 //! use philiprehberger_webhook_signature::sign;
 //!
 //! let signed = sign("hello world", "my-secret");
-//! assert!(!signed.signature().is_empty());
+//! assert!(!signed.signature.is_empty());
 //! ```
 
 use hmac::{Hmac, Mac};
