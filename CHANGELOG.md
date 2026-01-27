@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.0 (2026-04-06)
+
+- Upgrade `hmac` from 0.12 to 0.13
+- Upgrade `sha2` from 0.10 to 0.11
+
 ## 0.4.0 (2026-04-06)
 
 - Add `verify_with_secrets()` and `verify_header_with_secrets()` for multi-secret key rotation support
