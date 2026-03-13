@@ -6,7 +6,7 @@ HMAC-SHA256 webhook signing and verification for Rust.
 
 ```toml
 [dependencies]
-philiprehberger-webhook-signature = "0.1"
+philiprehberger-webhook-signature = "0.3"
 ```
 
 ## Usage
@@ -56,6 +56,19 @@ match verify(payload, secret, &sig, ts, 300) {
 
 ```rust
 verify(payload, secret, &sig, ts, 0)?; // no expiry check
+```
+
+### Reusable Signer and Verifier
+
+```rust
+use philiprehberger_webhook_signature::{Signer, Verifier};
+
+let signer = Signer::new("my-secret");
+let signed = signer.sign("webhook body");
+println!("{}", signed); // "t=...,sha256=..."
+
+let verifier = Verifier::new("my-secret", 300);
+verifier.verify_header("webhook body", &signed.to_header())?;
 ```
 
 ## License
