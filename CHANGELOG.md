@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.3 (2026-03-16)
+
+- Add README badges
+- Synchronize version across Cargo.toml, README, and CHANGELOG
+
 ## 0.3.0 (2026-03-13)
 
 - Add `Signer` struct — binds a secret for convenient repeated signing
