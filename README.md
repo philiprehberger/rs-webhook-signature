@@ -10,7 +10,7 @@ HMAC-SHA256 webhook signing and verification for Rust.
 
 ```toml
 [dependencies]
-philiprehberger-webhook-signature = "0.3.4"
+philiprehberger-webhook-signature = "0.3.5"
 ```
 
 ## Usage
@@ -73,6 +73,14 @@ println!("{}", signed); // "t=...,sha256=..."
 
 let verifier = Verifier::new("my-secret", 300);
 verifier.verify_header("webhook body", &signed.to_header())?;
+```
+
+
+## Development
+
+```bash
+cargo test
+cargo clippy -- -D warnings
 ```
 
 ## License
