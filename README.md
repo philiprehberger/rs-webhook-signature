@@ -4,7 +4,7 @@
 [![Crates.io](https://img.shields.io/crates/v/philiprehberger-webhook-signature.svg)](https://crates.io/crates/philiprehberger-webhook-signature)
 [![License](https://img.shields.io/github/license/philiprehberger/rs-webhook-signature)](LICENSE)
 
-HMAC-SHA256 webhook signing and verification for Rust.
+HMAC-SHA256 webhook signing and verification for Rust
 
 ## Installation
 
@@ -75,6 +75,24 @@ let verifier = Verifier::new("my-secret", 300);
 verifier.verify_header("webhook body", &signed.to_header())?;
 ```
 
+
+## API
+
+| Function / Type | Description |
+|-----------------|-------------|
+| `sign(payload, secret)` | Sign a payload, returns `SignedPayload` |
+| `sign_at(payload, secret, timestamp)` | Sign with a specific timestamp |
+| `verify(payload, secret, signature, timestamp, max_age_secs)` | Verify a signature (set max_age to 0 to skip age check) |
+| `parse_header(header)` | Parse a `t=...,sha256=...` header into signature and timestamp |
+| `verify_header(payload, secret, header, max_age_secs)` | Parse and verify a header in one call |
+| `Signer::new(secret)` | Create a reusable signer bound to a secret |
+| `signer.sign(payload)` | Sign a payload using the bound secret |
+| `signer.sign_at(payload, timestamp)` | Sign with a specific timestamp |
+| `Verifier::new(secret, max_age_secs)` | Create a reusable verifier bound to a secret and max age |
+| `verifier.verify(payload, signature, timestamp)` | Verify a signature |
+| `verifier.verify_header(payload, header)` | Parse and verify a header |
+| `SignedPayload` | Struct with `signature`, `timestamp`, `body` fields and `to_header()` |
+| `SignatureError` | Enum: `Mismatch`, `Expired`, `InvalidHeader` |
 
 ## Development
 
