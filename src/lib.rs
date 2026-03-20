@@ -3,12 +3,10 @@
 //! # Example
 //!
 //! ```rust
-//! use philiprehberger_webhook_signature::{sign, verify};
+//! use philiprehberger_webhook_signature::sign;
 //!
-//! let secret = "my-secret";
-//! let payload = b"hello world";
-//! let signature = sign(secret, payload, None);
-//! assert!(verify(secret, payload, &signature, None).is_ok());
+//! let signed = sign("hello world", "my-secret");
+//! assert!(!signed.signature().is_empty());
 //! ```
 
 use hmac::{Hmac, Mac};
