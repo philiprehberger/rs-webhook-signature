@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.8 (2026-03-27)
+
+- Add GitHub issue templates, PR template, and dependabot configuration
+- Update README badges and add Support section
+
 ## 0.3.7 (2026-03-22)
 
 - Fix README compliance
