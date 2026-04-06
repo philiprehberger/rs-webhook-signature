@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0 (2026-04-06)
+
+- Add `verify_with_secrets()` and `verify_header_with_secrets()` for multi-secret key rotation support
+- Add `Verifier::new_with_secrets()` for reusable multi-secret verification
+- Add `SignedPayload::age()` convenience method for checking signature age
+- Add `verify_relaxed()` for verification with clock skew tolerance
+
 ## 0.3.9 (2026-03-31)
 
 - Standardize README to 3-badge format with emoji Support section

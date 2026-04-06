@@ -10,7 +10,7 @@ HMAC-SHA256 webhook signing and verification for Rust
 
 ```toml
 [dependencies]
-philiprehberger-webhook-signature = "0.3.8"
+philiprehberger-webhook-signature = "0.4.0"
 ```
 
 ## Usage
@@ -73,6 +73,56 @@ let verifier = Verifier::new("my-secret", 300);
 verifier.verify_header("webhook body", &signed.to_header())?;
 ```
 
+### Key Rotation
+
+Verify against multiple secrets during key rotation:
+
+```rust
+use philiprehberger_webhook_signature::{sign, verify_with_secrets};
+
+let signed = sign("payload", "new-secret");
+
+// Accepts signatures from either the old or new secret
+let result = verify_with_secrets(
+    "payload",
+    &["old-secret", "new-secret"],
+    &signed.signature,
+    signed.timestamp,
+    300,
+);
+assert!(result.is_ok());
+```
+
+### Signature Age
+
+Check how old a signed payload is:
+
+```rust
+use philiprehberger_webhook_signature::sign;
+
+let signed = sign("payload", "secret");
+println!("Signature age: {:?}", signed.age());
+```
+
+### Clock Skew Tolerance
+
+Allow a tolerance window for clock drift between signer and verifier:
+
+```rust
+use philiprehberger_webhook_signature::{sign, verify_relaxed};
+
+let signed = sign("payload", "secret");
+let result = verify_relaxed(
+    "payload",
+    "secret",
+    &signed.signature,
+    signed.timestamp,
+    300,  // max_age_secs
+    10,   // tolerance_secs
+);
+assert!(result.is_ok());
+```
+
 ## API
 
 | Function / Type | Description |
@@ -88,6 +138,11 @@ verifier.verify_header("webhook body", &signed.to_header())?;
 | `Verifier::new(secret, max_age_secs)` | Create a reusable verifier bound to a secret and max age |
 | `verifier.verify(payload, signature, timestamp)` | Verify a signature |
 | `verifier.verify_header(payload, header)` | Parse and verify a header |
+| `verify_with_secrets(payload, secrets, sig, ts, max_age)` | Verify against multiple secrets (key rotation) |
+| `verify_header_with_secrets(payload, secrets, header, max_age)` | Verify header against multiple secrets |
+| `verify_relaxed(payload, secret, sig, ts, max_age, tolerance)` | Verify with clock skew tolerance |
+| `Verifier::new_with_secrets(secrets, max_age)` | Create a reusable multi-secret verifier |
+| `signed.age()` | Get the age of a signed payload as Duration |
 | `SignedPayload` | Struct with `signature`, `timestamp`, `body` fields and `to_header()` |
 | `SignatureError` | Enum: `Mismatch`, `Expired`, `InvalidHeader` |
 
