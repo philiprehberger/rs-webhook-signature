@@ -10,7 +10,7 @@ HMAC-SHA256 webhook signing and verification for Rust
 
 ```toml
 [dependencies]
-philiprehberger-webhook-signature = "0.5.0"
+philiprehberger-webhook-signature = "0.6.0"
 ```
 
 ## Usage
@@ -121,6 +121,52 @@ let result = verify_relaxed(
     10,   // tolerance_secs
 );
 assert!(result.is_ok());
+```
+
+### Secure Secret Storage
+
+Webhook secrets are credentials — treat them with the same care as API keys or
+database passwords.
+
+- **Load from environment variables**, never hard-code secrets in source or
+  commit them to version control:
+
+  ```rust
+  use philiprehberger_webhook_signature::Signer;
+
+  let secret = std::env::var("WEBHOOK_SECRET")
+      .expect("WEBHOOK_SECRET must be set");
+  let signer = Signer::new(&secret);
+  ```
+
+- **Rotate secrets periodically** using the built-in key-rotation support so
+  in-flight signatures from the previous secret remain valid during the
+  handover window:
+
+  ```rust
+  use philiprehberger_webhook_signature::Verifier;
+
+  let current = std::env::var("WEBHOOK_SECRET").unwrap();
+  let previous = std::env::var("WEBHOOK_SECRET_PREVIOUS").ok();
+
+  let secrets: Vec<String> = previous.into_iter().chain(std::iter::once(current)).collect();
+  let verifier = Verifier::new_with_secrets(secrets, 300);
+  ```
+
+- **Never log secrets** (or full signatures) — avoid `println!`, `dbg!`, and
+  structured logging fields that could leak credentials into log sinks.
+- **Constant-time comparison is already used** internally (via the `subtle`
+  crate) when checking signatures, so you do not need to implement your own
+  timing-safe equality check.
+
+### Optional `serde` Feature
+
+Enable the `serde` feature to derive `Serialize` and `Deserialize` for
+`SignedPayload` and `SignatureError`:
+
+```toml
+[dependencies]
+philiprehberger-webhook-signature = { version = "0.6.0", features = ["serde"] }
 ```
 
 ## API
