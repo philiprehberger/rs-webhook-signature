@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0 (2026-04-06)
+
+- Add optional `serde` feature gating `Serialize`/`Deserialize` derives for `SignedPayload` and `SignatureError`
+- Add `parse_header` edge-case tests (empty header, duplicate fields, non-hex signature, oversized header)
+- Add perf smoke test asserting 1 MiB sign + verify completes under 500ms
+- Document secure secret storage guidance (env vars, rotation, no logging, constant-time comparison)
+
 ## 0.5.0 (2026-04-06)
 
 - Upgrade `hmac` from 0.12 to 0.13
